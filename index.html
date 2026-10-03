@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Smart Gauge</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+<symbol id="i-gear" viewBox="0 0 24 24"><path d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7zM19.4 13a7.4 7.4 0 000-2l2-1.6-2-3.4-2.4 1a7.4 7.4 0 00-1.7-1l-.4-2.5h-4l-.4 2.5a7.4 7.4 0 00-1.7 1l-2.4-1-2 3.4L4.6 11a7.4 7.4 0 000 2l-2 1.6 2 3.4 2.4-1a7.4 7.4 0 001.7 1l.4 2.5h4l.4-2.5a7.4 7.4 0 001.7-1l2.4 1 2-3.4z"/></symbol>
+<symbol id="i-car" viewBox="0 0 24 24"><path d="M5 11l1.5-4.5A2 2 0 018.4 5h7.2a2 2 0 011.9 1.5L19 11m-14 0h14m-14 0a2 2 0 00-2 2v4h2m14-6a2 2 0 012 2v4h-2m-14 0v2h3v-2m11 0v2h-3v-2m3 0h-11"/></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+<symbol id="i-up" viewBox="0 0 24 24"><path d="M12 16V4m0 0l-4 4m4-4l4 4M4 20h16"/></symbol>
+<symbol id="i-save" viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5zM8 3v5h7V3M8 21v-7h8v7"/></symbol>
+<symbol id="i-ref" viewBox="0 0 24 24"><path d="M20 12a8 8 0 11-2.3-5.6M20 4v4h-4"/></symbol>
+<symbol id="i-mon" viewBox="0 0 24 24"><path d="M3 5h18v11H3zM8 21h8m-4-5v5"/></symbol>
+<symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18a4 4 0 010-8 6 6 0 0111.3 1.5A3.5 3.5 0 0117.5 18z"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16"/></symbol>
+<symbol id="i-power" viewBox="0 0 24 24"><path d="M12 3v8m5.6-5.6a8 8 0 11-11.2 0"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m-8 0l1 13h8l1-13"/></symbol>
+<symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6m0-6L10 14M20 14v6H4V4h6"/></symbol>
+<symbol id="i-bt" viewBox="0 0 24 24"><path d="M7 7l10 10-5 4V3l5 4L7 17"/></symbol>
+<symbol id="i-wifi" viewBox="0 0 24 24"><path d="M3 9a13 13 0 0118 0M6.5 12.5a8 8 0 0111 0M10 16a3.5 3.5 0 014 0M12 19.5h.01"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></symbol>
+<symbol id="i-stop" viewBox="0 0 24 24"><path d="M7 7h10v10H7z"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></symbol>
+</svg>
+
+<div id="lostOverlay" hidden>
+  <div class="lost-box">
+    <svg class="ic big"><use href="#i-wifi"/></svg>
+    <h3 data-i18n="toast.linkLost">Связь с устройством потеряна</h3>
+    <button class="btn btn-primary" id="btnRetry" data-i18n="toast.linkRetry">Попробовать снова</button>
+  </div>
+</div>
+
+<header class="head">
+  <button class="icon-btn" id="btnBack" hidden><svg class="ic"><use href="#i-back"/></svg></button>
+  <h1 id="hdrTitle">Smart Gauge</h1>
+  <span class="head-dot" id="hdrDot"></span>
+</header>
+
+<main>
+<!-- ============ ГЛАВНАЯ ============ -->
+<section class="screen active" id="screen-dash">
+  <div class="status-card">
+    <div class="icon-box"><svg class="ic"><use href="#i-car"/></svg></div>
+    <div class="grow">
+      <div class="big" id="dashStatus">—</div>
+      <div class="sub" id="dashChip">ESP32-C3</div>
+    </div>
+  </div>
+
+  <div class="ring-wrap">
+    <svg viewBox="0 0 120 120" class="ring">
+      <circle class="ring-bg" cx="60" cy="60" r="52" pathLength="100"/>
+      <circle class="ring-fg" id="ringFg" cx="60" cy="60" r="52" pathLength="100"/>
+    </svg>
+    <div class="ring-center">
+      <div class="gear-big" id="gearBig">--</div>
+      <div class="gear-sub" id="gearSub"></div>
+    </div>
+  </div>
+
+  <div class="card params">
+    <div class="p-row"><span data-i18n="dash.rpm">Обороты</span><b id="vRpm">—</b></div>
+    <div class="p-row"><span data-i18n="dash.speed">Скорость</span><b id="vSpeed">—</b></div>
+    <div class="p-row"><span data-i18n="dash.temp">Температура</span><b id="vTemp">—</b></div>
+    <div class="p-row"><span data-i18n="dash.volt">Напряжение</span><b id="vVolt">—</b></div>
+    <div class="p-row"><span data-i18n="dash.fuel">Топливо</span><b id="vFuel">—</b></div>
+  </div>
+
+  <nav class="nav-cards">
+    <a class="nav-card" href="#trans"><svg class="ic"><use href="#i-gear"/></svg><h3 data-i18n="nav.trans">Коробка передач</h3><p data-i18n="nav.transDesc">Калибровка передаточных чисел</p><svg class="chev"><use href="#i-chev"/></svg></a>
+    <a class="nav-card" href="#settings"><svg class="ic"><use href="#i-mon"/></svg><h3 data-i18n="nav.settings">Настройки экрана</h3><p data-i18n="nav.settingsDesc">Тема, яркость, единицы</p><svg class="chev"><use href="#i-chev"/></svg></a>
+    <a class="nav-card" href="#system"><svg class="ic"><use href="#i-ref"/></svg><h3 data-i18n="nav.system">Системный раздел</h3><p data-i18n="nav.systemDesc">Прошивки, обновления, бэкап, сброс</p><svg class="chev"><use href="#i-chev"/></svg></a>
+  </nav>
+
+  <div class="footer-card">
+    <div class="ver"><span class="dot"></span> <span id="footVer">Smart Gauge</span></div>
+    <div class="sub" id="footSub"></div>
+  </div>
+</section>
+
+<!-- ============ КОРОБКА ПЕРЕДАЧ ============ -->
+<section class="screen" id="screen-trans">
+  <div class="card">
+    <p class="hint-text" data-i18n="trans.sub">Передача определяется по отношению оборотов к скорости (K = RPM / км/ч). Откалибруйте каждую передачу плавным разгоном.</p>
+    <div class="live-grid">
+      <div><span class="sub" data-i18n="trans.liveK">Текущее K</span><b id="trLiveK">—</b></div>
+      <div><span class="sub" data-i18n="trans.rec">Запись</span><b id="trRecState">—</b></div>
+    </div>
+    <div class="bar"><span id="trProg"></span></div>
+  </div>
+
+  <div class="card">
+    <h3 data-i18n="trans.gears">Передачи</h3>
+    <div id="gearRows"></div>
+    <p class="hint-text" data-i18n="trans.nAuto">N определяется автоматически на месте</p>
+  </div>
+
+  <div class="card">
+    <h3 data-i18n="trans.fd">Свободная езда</h3>
+    <p class="hint-text" data-i18n="trans.fdDesc">Просто катайтесь на 3–6 передачах, система сама предложит коэффициенты.</p>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btnFdStart"><svg class="ic"><use href="#i-play"/></svg><span data-i18n="trans.fdStart">Начать поездку</span></button>
+      <button class="btn btn-dark" id="btnFdStop"><svg class="ic"><use href="#i-stop"/></svg><span data-i18n="trans.fdStop">Завершить</span></button>
+    </div>
+    <div id="fdPropWrap" hidden>
+      <div class="sub" data-i18n="trans.fdProp">Предложения свободной езды</div>
+      <div id="fdPropList"></div>
+      <button class="btn btn-primary btn-block" id="btnFdConfirm"><svg class="ic"><use href="#i-check"/></svg><span data-i18n="trans.fdConfirm">Принять предложения</span></button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 data-i18n="trans.params">Параметры</h3>
+    <label class="f-row"><span data-i18n="trans.tol">Допуск, %</span><input type="number" id="inpTol" min="2" max="40" step="1"></label>
+    <label class="f-row"><span data-i18n="trans.rmax">Макс. скорость задней, км/ч</span><input type="number" id="inpRmax" min="5" max="40" step="1"></label>
+    <button class="btn btn-primary btn-block" id="btnTrParams"><svg class="ic"><use href="#i-save"/></svg><span data-i18n="c.save">Сохранить</span></button>
+    <button class="btn btn-danger btn-block" id="btnTrReset"><svg class="ic"><use href="#i-trash"/></svg><span data-i18n="trans.resetAll">Сбросить калибровку</span></button>
+  </div>
+</section>
+
+<!-- ============ НАСТРОЙКИ ЭКРАНА ============ -->
+<section class="screen" id="screen-settings">
+  <div class="card">
+    <h3 data-i18n="set.theme">Цветовая тема</h3>
+    <div class="swatch-row" id="swatchRow">
+      <button class="swatch" data-color="#3B82F6"></button>
+      <button class="swatch" data-color="#EF4444"></button>
+      <button class="swatch" data-color="#22C55E"></button>
+      <button class="swatch" data-color="#F59E0B"></button>
+      <button class="swatch" data-color="#A855F7"></button>
+      <button class="swatch" data-color="#EC4899"></button>
+      <button class="swatch" data-color="#14B8A6"></button>
+    </div>
+  </div>
+  <div class="card">
+    <h3 data-i18n="set.units">Единицы измерения</h3>
+    <div class="btn-row">
+      <button class="btn btn-dark grow" id="btnUnitMetric" data-i18n="set.metric">Км/ч · °C</button>
+      <button class="btn btn-dark grow" id="btnUnitImperial" data-i18n="set.imperial">Мп/ч · °F</button>
+    </div>
+  </div>
+  <div class="card">
+    <h3 data-i18n="set.bright">Яркость подсветки</h3>
+    <div class="f-row"><input type="range" id="rngBright" min="0" max="100" step="1"><b id="brightVal">70</b></div>
+  </div>
+  <div class="card">
+    <label class="sw-row"><span data-i18n="set.mochi">Мордочка «Давай мочи»</span><input type="checkbox" id="swMochi"><span class="sw"></span></label>
+    <label class="sw-row"><span data-i18n="set.splash">Заставка при старте</span><input type="checkbox" id="swSplash"><span class="sw"></span></label>
+  </div>
+  <div class="actions">
+    <button class="btn btn-primary btn-block" id="btnSaveSettings"><svg class="ic"><use href="#i-save"/></svg><span data-i18n="set.save">Сохранить</span></button>
+  </div>
+</section>
+
+<!-- ============ СИСТЕМНЫЙ РАЗДЕЛ ============ -->
+<section class="screen" id="screen-system">
+  <div class="card">
+    <button class="sys-row" id="rowVer"><span class="ic-box"><svg class="ic"><use href="#i-gear"/></svg></span><span class="t"><span class="sub" data-i18n="sys.version">Версия прошивки</span><span class="big" id="sysVer">—</span></span></button>
+    <button class="sys-row" id="rowDev"><span class="ic-box"><svg class="ic"><use href="#i-mon"/></svg></span><span class="t"><span class="sub" data-i18n="sys.device">Устройство</span><span class="big" id="sysDev">Smart Gauge</span></span></button>
+    <div class="sys-row"><span class="ic-box"><svg class="ic"><use href="#i-ref"/></svg></span><span class="t"><span class="sub" data-i18n="sys.diag">Диагностика</span><span class="big" id="sysDiag">—</span></span></div>
+  </div>
+
+  <div class="card">
+    <h3><svg class="ic"><use href="#i-bt"/></svg> <span data-i18n="sys.bt">Bluetooth-адаптер</span></h3>
+    <div class="big" id="btStatus">—</div>
+    <div class="btn-row">
+      <button class="btn btn-primary grow" id="btnBtScan"><svg class="ic"><use href="#i-ref"/></svg><span data-i18n="sys.btScan">Сканировать</span></button>
+      <button class="btn btn-dark grow" id="btnBtDisc"><span data-i18n="sys.btDisconnect">Отключить</span></button>
+    </div>
+    <div id="btList"></div>
+  </div>
+
+  <div class="card">
+    <label class="sys-row" for="fileOta"><span class="ic-box"><svg class="ic"><use href="#i-up"/></svg></span><span class="t"><h4 data-i18n="sys.update">Обновить прошивку</h4><span class="sub" data-i18n="sys.updateDesc">Выберите файл .bin с устройства</span><span class="ota-progress" id="otaWrap" hidden><span id="otaBar"></span></span><span class="sub ota-pct" id="otaPct"></span></span></label>
+    <input type="file" id="fileOta" accept=".bin" class="file-hidden">
+    <button class="sys-row" id="rowDownload"><span class="ic-box"><svg class="ic"><use href="#i-cloud"/></svg></span><span class="t"><h4 data-i18n="sys.download">Скачать обновление</h4><span class="sub" data-i18n="sys.downloadDesc">Последняя прошивка в репозитории GitHub</span></span><svg class="chev ext"><use href="#i-ext"/></svg></button>
+    <button class="sys-row" id="rowBackup"><span class="ic-box"><svg class="ic"><use href="#i-down"/></svg></span><span class="t"><h4 data-i18n="sys.backup">Сохранить / загрузить настройки</h4><span class="sub" data-i18n="sys.backupDesc">Экспорт или импорт всех настроек</span></span><svg class="chev"><use href="#i-chev"/></svg></button>
+    <input type="file" id="fileImport" accept=".json,application/json" class="file-hidden">
+  </div>
+
+  <div class="card">
+    <button class="sys-row" id="rowReboot"><span class="ic-box"><svg class="ic"><use href="#i-power"/></svg></span><span class="t"><h4 data-i18n="sys.reboot">Перезагрузить</h4><span class="sub" data-i18n="sys.rebootDesc">Перезапуск устройства</span></span></button>
+    <button class="sys-row" id="rowWifi"><span class="ic-box"><svg class="ic"><use href="#i-wifi"/></svg></span><span class="t"><h4 data-i18n="sys.wifi">Сменить пароль Wi-Fi</h4><span class="sub" data-i18n="sys.wifiDesc">Пароль точки доступа</span></span></button>
+    <button class="sys-row" id="rowService"><span class="ic-box"><svg class="ic"><use href="#i-car"/></svg></span><span class="t"><h4 data-i18n="sys.service">Выйти из сервисного режима</h4><span class="sub" data-i18n="sys.serviceDesc">Закройте доступ: переключите экран на устройстве</span></span></button>
+    <button class="sys-row danger" id="rowReset"><span class="ic-box"><svg class="ic"><use href="#i-trash"/></svg></span><span class="t"><h4 data-i18n="sys.reset">Сбросить настройки</h4><span class="sub" data-i18n="sys.resetDesc">Сброс до заводских значений</span></span></button>
+  </div>
+</section>
+</main>
+
+<div id="toasts"></div>
+<div id="modalRoot" hidden><div class="modal-bg"><div class="modal"><h3 id="mTitle"></h3><div id="mBody"></div><div class="btn-row" id="mActions"></div></div></div></div>
+
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

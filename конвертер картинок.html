@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dasai Mochi Converter</title>
+<style>
+:root {
+  --bg: #0F1419;
+  --card: #1A2332;
+  --card2: #20293A;
+  --line: #2A3648;
+  --accent: #3B82F6;
+  --text: #FFFFFF;
+  --muted: #94A3B8;
+  --ok: #10B981;
+  --err: #EF4444;
+  --r: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.container {
+  max-width: 600px;
+  width: 100%;
+}
+
+h1 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+h1 .emoji { font-size: 32px; }
+
+.subtitle {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--r);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.25);
+}
+
+.card h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--accent);
+}
+
+.card p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.card ol {
+  font-size: 13px;
+  color: var(--muted);
+  padding-left: 20px;
+  line-height: 1.6;
+}
+
+.card ol li { margin-bottom: 4px; }
+
+.drop-zone {
+  border: 2px dashed var(--line);
+  border-radius: var(--r);
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 16px;
+}
+
+.drop-zone:hover, .drop-zone.dragover {
+  border-color: var(--accent);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.drop-zone .icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.drop-zone .text {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.drop-zone .hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.file-input { display: none; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text);
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-primary {
+  background: var(--accent);
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #2563EB;
+}
+
+.status {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  display: none;
+}
+
+.status.show { display: block; }
+.status.ok { background: rgba(16, 185, 129, 0.1); border-left: 3px solid var(--ok); }
+.status.err { background: rgba(239, 68, 68, 0.1); border-left: 3px solid var(--err); }
+.status.info { background: rgba(59, 130, 246, 0.1); border-left: 3px solid var(--accent); }
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.preview-item {
+  aspect-ratio: 1;
+  background: var(--card2);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  color: var(--muted);
+  position: relative;
+}
+
+.preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.preview-item .num {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-size: 9px;
+  background: rgba(0,0,0,0.7);
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+.settings {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.setting-row label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.setting-row input[type="number"] {
+  width: 80px;
+  padding: 8px 12px;
+  background: var(--card2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.setting-row input[type="number"]:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.progress {
+  height: 6px;
+  background: var(--line);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 12px;
+  display: none;
+}
+
+.progress.show { display: block; }
+
+.progress-bar {
+  height: 100%;
+  background: var(--accent);
+  width: 0%;
+  transition: width 0.3s;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1><span class="emoji">🍡</span> Dasai Mochi Converter</h1>
+  <p class="subtitle">PNG → LVGL C-Array (монохромный битмап)</p>
+
+  <div class="card">
+    <h3>📋 Инструкция</h3>
+    <ol>
+      <li>Скачай папку с картинками (00.png ... 89.png) с GitHub</li>
+      <li>Нажми на область ниже или перетащи файлы</li>
+      <li>Настрой параметры (размер, порог)</li>
+      <li>Нажми "Конвертировать"</li>
+      <li>Скачай готовый <code>mochi_frames.h</code></li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h3>️ Настройки</h3>
+    <div class="settings">
+      <div class="setting-row">
+        <label>Ширина (px)</label>
+        <input type="number" id="width" value="128" min="1" max="256">
+      </div>
+      <div class="setting-row">
+        <label>Высота (px)</label>
+        <input type="number" id="height" value="128" min="1" max="256">
+      </div>
+      <div class="setting-row">
+        <label>Порог альфа-канала (0-255)</label>
+        <input type="number" id="threshold" value="128" min="0" max="255">
+      </div>
+    </div>
+  </div>
+
+  <div class="drop-zone" id="dropZone">
+    <div class="icon">📁</div>
+    <div class="text">Перетащи PNG файлы сюда</div>
+    <div class="hint">или нажми для выбора</div>
+    <input type="file" id="fileInput" class="file-input" multiple accept="image/png">
+  </div>
+
+  <div class="preview-grid" id="previewGrid"></div>
+
+  <button class="btn btn-primary" id="convertBtn" disabled>
+    <span>🔄</span> Конвертировать и скачать .h
+  </button>
+
+  <div class="progress" id="progress">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const convertBtn = document.getElementById('convertBtn');
+const previewGrid = document.getElementById('previewGrid');
+const statusEl = document.getElementById('status');
+const progressEl = document.getElementById('progress');
+const progressBar = document.getElementById('progressBar');
+
+let files = [];
+
+// Drag & drop
+dropZone.addEventListener('click', () => fileInput.click());
+
+dropZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropZone.classList.add('dragover');
+});
+
+dropZone.addEventListener('dragleave', () => {
+  dropZone.classList.remove('dragover');
+});
+
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  handleFiles(e.dataTransfer.files);
+});
+
+fileInput.addEventListener('change', (e) => {
+  handleFiles(e.target.files);
+});
+
+function handleFiles(fileList) {
+  files = Array.from(fileList).filter(f => f.type === 'image/png').sort((a, b) => {
+    const numA = parseInt(a.name.match(/\d+/)?.[0] || 0);
+    const numB = parseInt(b.name.match(/\d+/)?.[0] || 0);
+    return numA - numB;
+  });
+
+  if (files.length === 0) {
+    showStatus('err', '❌ PNG файлы не найдены');
+    return;
+  }
+
+  showPreviews();
+  convertBtn.disabled = false;
+  showStatus('info', `✅ Загружено ${files.length} файлов`);
+}
+
+function showPreviews() {
+  previewGrid.innerHTML = '';
+  files.forEach((file, idx) => {
+    const item = document.createElement('div');
+    item.className = 'preview-item';
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(file);
+    item.appendChild(img);
+    const num = document.createElement('span');
+    num.className = 'num';
+    num.textContent = idx;
+    item.appendChild(num);
+    previewGrid.appendChild(item);
+  });
+}
+
+function showStatus(type, message) {
+  statusEl.className = `status show ${type}`;
+  statusEl.textContent = message;
+}
+
+convertBtn.addEventListener('click', async () => {
+  if (files.length === 0) return;
+
+  const width = parseInt(document.getElementById('width').value);
+  const height = parseInt(document.getElementById('height').value);
+  const threshold = parseInt(document.getElementById('threshold').value);
+
+  convertBtn.disabled = true;
+  progressEl.classList.add('show');
+  progressBar.style.width = '0%';
+
+  try {
+    const frames = [];
+    for (let i = 0; i < files.length; i++) {
+      const frame = await processImage(files[i], width, height, threshold);
+      frames.push(frame);
+      progressBar.style.width = `${((i + 1) / files.length) * 100}%`;
+    }
+
+    const header = generateHeader(frames, width, height);
+    downloadFile('mochi_frames.h', header);
+    showStatus('ok', `✅ Готово! Сконвертировано ${frames.length} фреймов`);
+  } catch (err) {
+    showStatus('err', `❌ Ошибка: ${err.message}`);
+  } finally {
+    convertBtn.disabled = false;
+    setTimeout(() => progressEl.classList.remove('show'), 500);
+  }
+});
+
+function processImage(file, width, height, threshold) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      const imageData = ctx.getImageData(0, 0, width, height);
+      const data = imageData.data;
+
+      // Бинаризация: 1 бит на пиксель
+      const bytesPerRow = Math.ceil(width / 8);
+      const frame = new Uint8Array(bytesPerRow * height);
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const idx = (y * width + x) * 4;
+          const alpha = data[idx + 3];
+          const bit = alpha > threshold ? 1 : 0;
+          const byteIdx = y * bytesPerRow + Math.floor(x / 8);
+          const bitIdx = 7 - (x % 8);
+          if (bit) frame[byteIdx] |= (1 << bitIdx);
+        }
+      }
+
+      resolve(frame);
+    };
+    img.onerror = () => reject(new Error(`Не удалось загрузить ${file.name}`));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+function generateHeader(frames, width, height) {
+  const bytesPerRow = Math.ceil(width / 8);
+  const frameSize = bytesPerRow * height;
+
+  let code = `#pragma once\n`;
+  code += `#include <stdint.h>\n\n`;
+  code += `#define MOCHI_W ${width}\n`;
+  code += `#define MOCHI_H ${height}\n`;
+  code += `#define MOCHI_FRAMES ${frames.length}\n\n`;
+
+  // Генерация массивов для каждого фрейма
+  frames.forEach((frame, idx) => {
+    code += `static const uint8_t mochi_frame_${idx}[] PROGMEM = {\n`;
+    for (let i = 0; i < frame.length; i++) {
+      code += `0x${frame[i].toString(16).padStart(2, '0')}`;
+      if (i < frame.length - 1) code += ',';
+      if ((i + 1) % 16 === 0 || i === frame.length - 1) code += '\n';
+      else code += ' ';
+    }
+    code += `};\n\n`;
+  });
+
+  // Массив указателей
+  code += `static const uint8_t* mochi_frames[] PROGMEM = {\n`;
+  frames.forEach((_, idx) => {
+    code += `  mochi_frame_${idx}`;
+    if (idx < frames.length - 1) code += ',';
+    code += '\n';
+  });
+  code += `};\n`;
+
+  return code;
+}
+
+function downloadFile(filename, content) {
+  const blob = new Blob([content], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>

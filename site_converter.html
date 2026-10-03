@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Site to C array</title></head>
+<body style="font-family:sans-serif;background:#222;color:#eee;padding:20px">
+<h2>Конвертер сайта в site_assets.h</h2>
+<p>Выбери ровно четыре файла: index.html, styles.css, i18n.js, app.js</p>
+<input type="file" id="f" multiple>
+<pre id="log" style="background:#111;padding:10px"></pre>
+<script>
+document.getElementById('f').onchange = async e => {
+  const names = {'index.html':'INDEX_HTML','styles.css':'STYLES_CSS','i18n.js':'I18N_JS','app.js':'APP_JS'};
+  let out = '#pragma once\n#include <stdint.h>\n';
+  const log = document.getElementById('log');
+  log.textContent = '';
+  for (const file of e.target.files) {
+    const key = names[file.name];
+    if (!key) { log.textContent += 'ПРОПУЩЕН (не то имя): ' + file.name + '\n'; continue; }
+    const buf = new Uint8Array(await file.arrayBuffer());
+    let hex = '';
+    for (let i = 0; i < buf.length; i++) {
+      hex += '0x' + buf[i].toString(16).padStart(2,'0') + ',';
+      if (i % 32 === 31) hex += '\n';
+    }
+    out += 'static const uint8_t ' + key + '[] PROGMEM = {\n' + hex + '\n};\n';
+    out += 'static const uint32_t ' + key + '_LEN = ' + buf.length + ';\n';
+    log.textContent += 'OK: ' + file.name + ' = ' + buf.length + ' байт\n';
+  }
+  const blob = new Blob([out], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'site_assets.h';
+  a.click();
+  log.textContent += 'Файл site_assets.h скачан.\n';
+};
+</script>
+</body></html>
